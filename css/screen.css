@@ -1,0 +1,34 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #425245;
+}
+
+.header-container {
+	width: 100%;
+	height: 120px;
+	position: relative;
+	background-color: #E0CB8B;
+	border-bottom: 1px;
+	margin-bottom: 20px;	
+}
+
+.nav {
+	float: right;
+	background-color: #2D332E;
+}
+
+.content {
+	background-color: #2D332E;
+}
+.content.main {
+/*	background-color: #425245;
+*/}
+
+.content.sidebar {
+/*	background-color: #CFB66B;
+*/}
+
+.footer {
+
+}
