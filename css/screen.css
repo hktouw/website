@@ -10,7 +10,9 @@
 #footer a {color: gray;}
 
 
-ul.listNoMarker {font-family: 'Quattrocento Sans', Arial, Helvetica, Sans-Serif; font-size: 18px; color: #D9D9D9; margin-left: 20px;}
+ul.listNoMarker {font-family: 'Quattrocento Sans', Arial, Helvetica, Sans-Serif; font-size: 20px; color: #D9D9D9; margin-left: 20px;}
 ul.listNoMarker li {margin: 10px 0px 5px 0px; list-style-type: none; }
 ul.list {font-family: 'Quattrocento Sans', Arial, Helvetica, Sans-Serif; font-size: 18px; color: #D9D9D9; margin-left: 20px;}
 ul.list li {margin: 5px 0px 5px 0px; list-style-type: disc; }
+
+.email {font-size:24px;font-weight:bold;}
