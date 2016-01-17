@@ -1,26 +1,29 @@
 =begin
 Code has been heavily simplified and obfuscated, but hopefully the general architecture comes across.
-The purpose of this code is to create configurable filters sets that vary based on each locale/partner.
-A complete filter set for a particular partner can be a hash that is 100+ lines long, so rather than maintain each
-set I created base filter sets and had diffs applied to the base via callback functions.
+The purpose of this code is to create configurable html template sets that vary based on each locale/partner.
+A complete template set for a particular partner can be a hash that is 100+ lines long, so rather than maintain each
+set I created base template sets and had diffs applied to the base via callback functions.
 This allowed us to scale very quickly for new locales/partners because all we had to do was apply the appropriate
-callback to create a filter set.
+callbacks to create different template sets.
+
+The example code below is for form form elements on a page
+
+Also please overlook any errors that might have occured when obfuscating/simplifying this code :)
 
 Not shown for brevity sake:
-- filter set generation is heavily cached
-- Many more callbacks and base filter sets
+- Heavy caching for template set generation
+- Many more callbacks and base template sets
 - i18n translation support
+- Error handling and logging
 =end
 
-class FilterBuilder
-  attr_accessor :filters
+class TemplateBuilder
+  attr_accessor :templates
 
-  CALLBACKS = Hash.new([]).merge(
-                         {
-                           [:ca, :oakland]         => BAY_AREA_CALLBACKS,
-                           [:ca, :'san francisco'] => BAY_AREA_CALLBACKS,
-                         }
-                       ).freeze
+  CALLBACKS = Hash.new([]).merge({
+                                   [:ca, :oakland]         => BAY_AREA_CALLBACKS,
+                                   [:ca, :'san francisco'] => BAY_AREA_CALLBACKS,
+                                 }).freeze
 
   BAY_AREA_CALLBACKS = [
     {
@@ -32,14 +35,14 @@ class FilterBuilder
     }
   ]
 
-  SIMPLE_FILTERS = {
-    display_type: :filter_column_primary,
-    filters: {
+  SIMPLE_TEMPLATE = {
+    display_type: :template_column_primary,
+    templates: {
       gradeLevels: {
         label: 'Grade Level',
         display_type: :title,
         name: :gradeLevels,
-        filters: {
+        templates: {
           p: {label: 'Preschool', display_type: :basic_checkbox, name: :gradeLevels, value: :p},
           e: {label: 'Elementary', display_type: :basic_checkbox, name: :gradeLevels, value: :e},
           m: {label: 'Middle', display_type: :basic_checkbox, name: :gradeLevels, value: :m},
@@ -52,26 +55,26 @@ class FilterBuilder
   def initialize(state = :no_state, city = :no_city)
     @callback_set_key     = [state.to_s.downcase.to_sym, city.to_s.downcase.to_sym]
     @callbacks            = build_callbacks
-    @filters              = build_filter_tree({filter: SIMPLE_FILTERS.deep_clone})[0]
+    @templates            = build_template_tree({template: SIMPLE_TEMPLATE.deep_clone})[0]
   end
 
-  def build_filter_tree(filters)
-    filters.map do |_, f|
-      filter           = run_callbacks!(f)
-      child_filters    = filter[:filters]
-      filter[:filters] = build_filter_tree(child_filters) if child_filters.present?
-      Filter.new(filter) if filter.present?
+  def build_template_tree(templates)
+    templates.map do |_, temp|
+      template           = run_callbacks!(temp)
+      child_templates    = template[:templates]
+      template[:templates] = build_template_tree(child_templates) if child_templates.present?
+      Template.new(template) if template.present?
     end.compact
   end
 
-  def run_callbacks!(filter)
+  def run_callbacks!(template)
     if @callbacks.present?
       @callbacks.each_with_index do |callback, i|
-        callback_value = callback.call(filter)
+        callback_value = callback.call(template)
         (@callbacks.delete_at(i) and return callback_value) if callback_value
       end
     else
-      filter
+      template
     end
   end
 
@@ -81,12 +84,12 @@ class FilterBuilder
     end.compact
   end
 
-  def build_append_to_children_callback(conditions, new_filter)
-    lambda do |filter|
+  def build_append_to_children_callback(conditions, new_template)
+    lambda do |template|
       conditions.each do |condition|
-        return false if filter[condition[:key].to_sym].to_s != condition[:match]
+        return false if template[condition[:key].to_sym].to_s != condition[:match]
       end
-      filter[:filters].present? ? (filter[:filters].merge!(new_filter) and filter) : new_filter
+      template[:templates].present? ? (template[:templates].merge!(new_template) and template) : new_template
     end
   end
 
